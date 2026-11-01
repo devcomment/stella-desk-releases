@@ -1,0 +1,32 @@
+name: Lounge YouTube feed
+
+on:
+  schedule:
+    - cron: '23 2,8,14,20 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lounge-youtube-feed
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.repository == 'devcomment/stella-desk-releases'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout feed publisher
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+      - name: Refresh member videos
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node .github/scripts/update-youtube-feed.cjs
